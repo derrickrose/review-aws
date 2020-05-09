@@ -105,7 +105,7 @@ Resources:
     Properties:
        RouteTableId: !Ref RouteTablePrivateA
        DestinationCidrBlock: 0.0.0.0/0
-       GatewayId: !Ref NatGatewayA
+       NatGatewayId: !Ref NatGatewayA
   RouteTablePrivateB:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -124,7 +124,7 @@ Resources:
     Properties:
        RouteTableId: !Ref RouteTablePrivateB
        DestinationCidrBlock: 0.0.0.0/0
-       GatewayId: !Ref NatGatewayB
+       NatGatewayId: !Ref NatGatewayB
   RouteTablePublicA:
     Type: AWS::EC2::RouteTable
     Properties:
