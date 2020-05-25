@@ -20,7 +20,7 @@ Resources:
       CidrBlock: 10.0.0.0/24
       Tags:
         - Key: Name
-          Value: 'ReviewVpcDev-private-a'
+          Value: 'ReviewVpcDev-subnet-private-a'
       VpcId: !Ref ReviewVpcDev 
   SubnetPrivateB:
     Type: AWS::EC2::Subnet
@@ -29,7 +29,7 @@ Resources:
       CidrBlock: 10.0.1.0/24
       Tags:
         - Key: Name
-          Value: 'ReviewVpcDev-private-b'
+          Value: 'ReviewVpcDev-subnet-private-b'
       VpcId: !Ref ReviewVpcDev #to say that this resource depends on the vpc
   SubnetPublicA:
     Type: AWS::EC2::Subnet
@@ -38,7 +38,7 @@ Resources:
       CidrBlock: 10.0.100.0/24
       Tags:
         - Key: Name
-          Value: 'ReviewVpcDev-public-a'
+          Value: 'ReviewVpcDev-subnet-public-a'
       VpcId: !Ref ReviewVpcDev 
   SubnetPublicB:
     Type: AWS::EC2::Subnet
@@ -47,7 +47,7 @@ Resources:
       CidrBlock: 10.0.101.0/24
       Tags:
         - Key: Name
-          Value: 'ReviewVpcDev-public-b'
+          Value: 'ReviewVpcDev-subnet-public-b'
       VpcId: !Ref ReviewVpcDev
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -94,7 +94,7 @@ Resources:
       Tags:
       - Key: Name
         Value: ReviewVpcDev-rtb-private-a
-  AttachRoutablePrivateA:
+  AttachRouteTablePrivateA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref SubnetPrivateA
@@ -113,7 +113,7 @@ Resources:
       Tags:
       - Key: Name
         Value: ReviewVpcDev-rtb-private-b
-  AttachRoutablePrivateB:
+  AttachRouteTablePrivateB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref SubnetPrivateB
