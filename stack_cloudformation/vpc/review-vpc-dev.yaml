@@ -120,7 +120,7 @@ Resources:
       RouteTableId: !Ref RouteTablePrivateB
   RoutePrivateB:
     Type: AWS::EC2::Route
-    DependsOn: AttachRoutablePrivateB
+    DependsOn: AttachRouteTablePrivateB
     Properties:
        RouteTableId: !Ref RouteTablePrivateB
        DestinationCidrBlock: 0.0.0.0/0
