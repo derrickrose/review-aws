@@ -101,7 +101,7 @@ Resources:
       RouteTableId: !Ref RouteTablePrivateA
   RoutePrivateA:
     Type: AWS::EC2::Route
-    DependsOn: AttachRoutablePrivateA
+    DependsOn: AttachRouteTablePrivateA
     Properties:
        RouteTableId: !Ref RouteTablePrivateA
        DestinationCidrBlock: 0.0.0.0/0
