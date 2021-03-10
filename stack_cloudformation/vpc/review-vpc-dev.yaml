@@ -23,15 +23,6 @@ Resources:
         - Key: Name
           Value: 'ReviewVpcDev-subnet-private-a'
       VpcId: !Ref ReviewVpcDev 
-  SubnetPrivateB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: eu-west-3b
-      CidrBlock: 10.0.1.0/24
-      Tags:
-        - Key: Name
-          Value: 'ReviewVpcDev-subnet-private-b'
-      VpcId: !Ref ReviewVpcDev #to say that this resource depends on the vpc
   SubnetPublicA:
     Type: AWS::EC2::Subnet
     Properties:
