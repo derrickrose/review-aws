@@ -1,3 +1,4 @@
+#TODO deduplicate the pattern
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   AWS CloudFormation VPC Template

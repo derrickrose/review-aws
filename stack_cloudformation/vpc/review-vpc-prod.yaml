@@ -1,0 +1,166 @@
+#TODO change prefix/suffix as prod
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation VPC Template
+Resources:
+  ReviewVpcDev:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: 'ReviewVpcDev'
+  SubnetPrivateA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-west-3a
+      #!Select to get any element of a tab
+      #!Cidr to divide ranges in subdiv
+      #!GetAtt to collect a resource in cloudformation
+      #CidrBlock: !Select [ 0, !Cidr [ !GetAtt ReviewVpcDev.CidrBlock, 1, 8 ]]
+      CidrBlock: 10.0.0.0/24
+      Tags:
+        - Key: Name
+          Value: 'ReviewVpcDev-subnet-private-a'
+      VpcId: !Ref ReviewVpcDev 
+  SubnetPrivateB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-west-3b
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: Name
+          Value: 'ReviewVpcDev-subnet-private-b'
+      VpcId: !Ref ReviewVpcDev #to say that this resource depends on the vpc
+  SubnetPublicA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-west-3a
+      CidrBlock: 10.0.100.0/24
+      Tags:
+        - Key: Name
+          Value: 'ReviewVpcDev-subnet-public-a'
+      VpcId: !Ref ReviewVpcDev 
+  SubnetPublicB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-west-3b
+      CidrBlock: 10.0.101.0/24
+      Tags:
+        - Key: Name
+          Value: 'ReviewVpcDev-subnet-public-b'
+      VpcId: !Ref ReviewVpcDev
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags:
+        - Key: Name
+          Value: 'ReviewVpcDev-internet-gw'
+  AttachInternetGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref ReviewVpcDev
+      InternetGatewayId: !Ref InternetGateway
+  ElasticIpA:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  ElasticIpB:
+    Type: AWS::EC2::EIP
+    Properties:
+      #This value would generally be vpc
+      Domain: vpc
+  NatGatewayA:
+    DependsOn: AttachInternetGateway
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIpA.AllocationId
+      SubnetId: !Ref SubnetPrivateA
+      Tags:
+        - Key: Name
+          Value: ReviewVpcDev-nat-gw-a
+  NatGatewayB:
+    DependsOn: AttachInternetGateway
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIpB.AllocationId
+      SubnetId: !Ref SubnetPrivateB
+      Tags:
+        - Key: Name
+          Value: ReviewVpcDev-nat-gw-b
+  RouteTablePrivateA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ReviewVpcDev
+      Tags:
+      - Key: Name
+        Value: ReviewVpcDev-rtb-private-a
+  AttachRouteTablePrivateA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateA
+      RouteTableId: !Ref RouteTablePrivateA
+  RoutePrivateA:
+    Type: AWS::EC2::Route
+    DependsOn: AttachRouteTablePrivateA
+    Properties:
+       RouteTableId: !Ref RouteTablePrivateA
+       DestinationCidrBlock: 0.0.0.0/0
+       NatGatewayId: !Ref NatGatewayA
+  RouteTablePrivateB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ReviewVpcDev
+      Tags:
+      - Key: Name
+        Value: ReviewVpcDev-rtb-private-b
+  AttachRouteTablePrivateB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateB
+      RouteTableId: !Ref RouteTablePrivateB
+  RoutePrivateB:
+    Type: AWS::EC2::Route
+    DependsOn: AttachRouteTablePrivateB
+    Properties:
+       RouteTableId: !Ref RouteTablePrivateB
+       DestinationCidrBlock: 0.0.0.0/0
+       NatGatewayId: !Ref NatGatewayB
+  RouteTablePublicA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ReviewVpcDev
+      Tags:
+      - Key: Name
+        Value: ReviewVpcDev-rtb-public-a
+  AttachRoutablePublicA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicA
+      RouteTableId: !Ref RouteTablePublicA
+  RoutePublicA:
+    Type: AWS::EC2::Route
+    DependsOn: AttachRoutablePublicA
+    Properties:
+       RouteTableId: !Ref RouteTablePublicA
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId: !Ref InternetGateway
+  RouteTablePublicB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ReviewVpcDev
+      Tags:
+      - Key: Name
+        Value: ReviewVpcDev-rtb-public-b
+  AttachRoutablePublicB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicB
+      RouteTableId: !Ref RouteTablePublicB
+  RoutePublicB:
+    Type: AWS::EC2::Route
+    DependsOn: AttachRoutablePublicB
+    Properties:
+       RouteTableId: !Ref RouteTablePublicB
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId: !Ref InternetGateway
