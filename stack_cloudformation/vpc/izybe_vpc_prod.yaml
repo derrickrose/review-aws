@@ -3,13 +3,13 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   AWS CloudFormation VPC Template
 Resources:
-  ReviewVpcDev:
+  IzybeVpcDev:
     Type: 'AWS::EC2::VPC'
     Properties:
       CidrBlock: 10.0.0.0/16
       Tags:
         - Key: Name
-          Value: 'ReviewVpcDev'
+          Value: 'IzybeVpcDev'
   SubnetPrivateA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -17,12 +17,12 @@ Resources:
       #!Select to get any element of a tab
       #!Cidr to divide ranges in subdiv
       #!GetAtt to collect a resource in cloudformation
-      #CidrBlock: !Select [ 0, !Cidr [ !GetAtt ReviewVpcDev.CidrBlock, 1, 8 ]]
+      #CidrBlock: !Select [ 0, !Cidr [ !GetAtt IzybeVpcDev.CidrBlock, 1, 8 ]]
       CidrBlock: 10.0.0.0/24
       Tags:
         - Key: Name
-          Value: 'ReviewVpcDev-subnet-private-a'
-      VpcId: !Ref ReviewVpcDev 
+          Value: 'IzybeVpcDev-subnet-private-a'
+      VpcId: !Ref IzybeVpcDev 
   SubnetPrivateB:
     Type: AWS::EC2::Subnet
     Properties:
@@ -30,8 +30,8 @@ Resources:
       CidrBlock: 10.0.1.0/24
       Tags:
         - Key: Name
-          Value: 'ReviewVpcDev-subnet-private-b'
-      VpcId: !Ref ReviewVpcDev #to say that this resource depends on the vpc
+          Value: 'IzybeVpcDev-subnet-private-b'
+      VpcId: !Ref IzybeVpcDev #to say that this resource depends on the vpc
   SubnetPublicA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -39,8 +39,8 @@ Resources:
       CidrBlock: 10.0.100.0/24
       Tags:
         - Key: Name
-          Value: 'ReviewVpcDev-subnet-public-a'
-      VpcId: !Ref ReviewVpcDev 
+          Value: 'IzybeVpcDev-subnet-public-a'
+      VpcId: !Ref IzybeVpcDev 
   SubnetPublicB:
     Type: AWS::EC2::Subnet
     Properties:
@@ -48,18 +48,18 @@ Resources:
       CidrBlock: 10.0.101.0/24
       Tags:
         - Key: Name
-          Value: 'ReviewVpcDev-subnet-public-b'
-      VpcId: !Ref ReviewVpcDev
+          Value: 'IzybeVpcDev-subnet-public-b'
+      VpcId: !Ref IzybeVpcDev
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties: 
       Tags:
         - Key: Name
-          Value: 'ReviewVpcDev-internet-gw'
+          Value: 'IzybeVpcDev-internet-gw'
   AttachInternetGateway:
     Type: 'AWS::EC2::VPCGatewayAttachment'
     Properties:
-      VpcId: !Ref ReviewVpcDev
+      VpcId: !Ref IzybeVpcDev
       InternetGatewayId: !Ref InternetGateway
   ElasticIpA:
     Type: AWS::EC2::EIP
@@ -78,7 +78,7 @@ Resources:
       SubnetId: !Ref SubnetPrivateA
       Tags:
         - Key: Name
-          Value: ReviewVpcDev-nat-gw-a
+          Value: IzybeVpcDev-nat-gw-a
   NatGatewayB:
     DependsOn: AttachInternetGateway
     Type: AWS::EC2::NatGateway
@@ -87,14 +87,14 @@ Resources:
       SubnetId: !Ref SubnetPrivateB
       Tags:
         - Key: Name
-          Value: ReviewVpcDev-nat-gw-b
+          Value: IzybeVpcDev-nat-gw-b
   RouteTablePrivateA:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref ReviewVpcDev
+      VpcId: !Ref IzybeVpcDev
       Tags:
       - Key: Name
-        Value: ReviewVpcDev-rtb-private-a
+        Value: IzybeVpcDev-rtb-private-a
   AttachRouteTablePrivateA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -110,10 +110,10 @@ Resources:
   RouteTablePrivateB:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref ReviewVpcDev
+      VpcId: !Ref IzybeVpcDev
       Tags:
       - Key: Name
-        Value: ReviewVpcDev-rtb-private-b
+        Value: IzybeVpcDev-rtb-private-b
   AttachRouteTablePrivateB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -129,10 +129,10 @@ Resources:
   RouteTablePublicA:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref ReviewVpcDev
+      VpcId: !Ref IzybeVpcDev
       Tags:
       - Key: Name
-        Value: ReviewVpcDev-rtb-public-a
+        Value: IzybeVpcDev-rtb-public-a
   AttachRoutablePublicA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -148,10 +148,10 @@ Resources:
   RouteTablePublicB:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref ReviewVpcDev
+      VpcId: !Ref IzybeVpcDev
       Tags:
       - Key: Name
-        Value: ReviewVpcDev-rtb-public-b
+        Value: IzybeVpcDev-rtb-public-b
   AttachRoutablePublicB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
