@@ -2,6 +2,10 @@ variable "vpc_id" {}
 
 variable "sg_name" {}
 
+
+
+
+
 resource "aws_security_group" "izybe_sg" {
   name        = var.sg_name
   description = "terraform course sg for ec2 instance"
