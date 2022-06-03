@@ -13,7 +13,7 @@ Resources:
   SubnetPrivateA:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: eu-west-3a
+      AvailabilityZone: us-east-1a
       #!Select to get any element of a tab
       #!Cidr to divide ranges in subdiv
       #!GetAtt to collect a resource in cloudformation
@@ -26,7 +26,7 @@ Resources:
   SubnetPrivateB:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: eu-west-3b
+      AvailabilityZone: us-east-1b
       CidrBlock: 10.0.1.0/24
       Tags:
         - Key: Name
@@ -35,7 +35,7 @@ Resources:
   SubnetPublicA:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: eu-west-3a
+      AvailabilityZone: us-east-1a
       CidrBlock: 10.0.100.0/24
       Tags:
         - Key: Name
@@ -44,7 +44,7 @@ Resources:
   SubnetPublicB:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: eu-west-3b
+      AvailabilityZone: us-east-1b
       CidrBlock: 10.0.101.0/24
       Tags:
         - Key: Name

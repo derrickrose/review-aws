@@ -38,11 +38,11 @@ resource "aws_key_pair" "izybe_key_pair" {
 
 }
 
-module "dev_izybe_sg" {
-  source  = "./izybe_sg"
-  vpc_id  = local.dev_izybe_vpc_id
-  sg_name = local.dev_izybe_sg_name
-}
+#module "dev_izybe_sg" {
+#  source  = "./izybe_sg"
+#  vpc_id  = local.dev_izybe_vpc_id
+#  sg_name = local.dev_izybe_sg_name
+#}
 
 
 #module "dev_izybe_ec2" {
