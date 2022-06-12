@@ -1,1 +1,0 @@
-pour creer un bucket sur s3 et copier uploader ce fichier
