@@ -14,7 +14,7 @@ A vpc composed of :
 
 - Go to *Your VPCs* and click *Create VPC* (explorer window in the left)
 - Choose VPC only
-- Enter name dev-miaradia-vpc
+    - Enter name dev-miaradia-vpc
 - Choose IPv4 CIDR manual input
 - Enter CIDR
 - Choose No IPv6 CIDR block
@@ -48,5 +48,50 @@ A vpc composed of :
 - Select our vpc (dev-miaradia-vpc)
 - Click Attach internet gateway
 
-### Create route table for our public subnet
+### Create route table for our public subnet, associate to public subnet and add route
+
+- Go click Route tables on the left hand menu
+- Click Create route table
+- Enter name dev-miaradia-routetable-public-subnet
+- Select our VPC (dev-miaradia-vpc)
+- Click Create route table
+- Go to Actions > Edit subnet associations
+- Select our public subnet (dev-miaradia-subnet-public-a)
+- Click Save associations
+- Click Edit routes > Add route
+- Add as destination 0.0.0.0/0 (all destination a part from VPC go through the I.G.) for Target select our internet
+  gateway
+- Click Save changes
+
+Note: at this point we have 2 route tables (one default create by aws)
+We should associate the second route table to the network private ?
+
+### Create 2 EC2 instances : the first one linked to public network and second one to private
+
+The objective is to connect to the first one inside the public network via ssh
+then from there reach the second one inside private network
+
+- Search for EC2
+- Click launch instance
+- Enter name dev-miaradia-ec2-public, amazon linux ami, 64 bits, t3.micro,
+- Create new key pair dev-miaradia-keypair-ec2-public.pem (if windows use *.ppk)
+- Edit Network settings, select public subnet, and enable auto-asign public IP
+- Create new security group dev-miaradia-securitygroup-ec2-public and allow connection from My IP address which will use
+  SSH port 22 TCP
+- Click Launch instance
+- Same way to create the second ec2 instance but linked to private network : dev-miaradia-ec2-private, ...
+- Not forget to allow connection from the ip ranges within the VPC then click Launch instance (10.0.0.0/16)
+
+### Connect to the public instance
+
+- Go to instances, click on the Instance ID of public ec2 then click connect
+- But before that, we should change the access level to the keypair file by running
+  command : `chmod 400 dev-miaradia-keypair-ec2-public.pem`
+- then connect using the command ssh -i "dev-miaradia-keypair-ec2-public.pem" ec2-user@54.221.26.186
+  Note user is ec2-user and public ip adress is 54.... in this case
+- Notice we now connected to the instance's terminal which looks like `[ec2-user@ip-10-0-1-187 ~]$`
+- then create an empty keypair and paste the keypair of the private instance which we going to use to connect to it
+- then connect to the private instance through the connection made onto the public one
+
+Note : if a problem of connection verify the network or security group
 
