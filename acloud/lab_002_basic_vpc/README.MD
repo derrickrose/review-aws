@@ -95,3 +95,11 @@ then from there reach the second one inside private network
 
 Note : if a problem of connection verify the network or security group
 
+### Add a role to our network to control the access to it (Network Access Control nACL)
+
+nACL is a way to control access to our network on VPC level
+
+- By default, with the VPC is already attached a nACL (and associated to subnets)
+- The Rules in the nACL list is applied from lowest to highest number
+- By creating and associating a nACL (already attached to a VPC) to a subnet, the association with the default one is
+  taken off
