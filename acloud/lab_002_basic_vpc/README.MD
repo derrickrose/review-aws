@@ -9,7 +9,7 @@ A vpc composed of :
 - 2 EC2 instances
 
 ## Steps
-
+[terraform](..%2F..%2Fterraform)
 ### Creating our VPC
 
 - Go to *Your VPCs* and click *Create VPC* (explorer window in the left)
