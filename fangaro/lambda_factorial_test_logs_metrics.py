@@ -7,6 +7,8 @@ logger = logging.getLogger("lambda_factorial_test_logs_metrics")
 Aws Lambda PowerTools Python 
 
 https://docs.powertools.aws.dev/lambda/python/latest/tutorial/
+
+arn:aws:lambda:us-east-1:017000801446:layer:AWSLambdaPowertoolsPythonV2-Arm64:71
 """
 
 
