@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Example AppFlow Flow from sharepoint to S3 Configuration
+Transform: 'AWS::LanguageExtensions'
+#https://stackoverflow.com/questions/77900676/how-to-use-cloudformation-to-create-an-appflow-flow-using-microsoft-sharepoint-c
+
+
+
+Mappings:
+  FoldersMap:
+    TestMigration:
+      driveIdItemId: '["drives/b!p3alVLWEQE-4s-dB40mvk_9HNNHA12tMksaXGoLLktEh0tgfySMASa8Ul3OHk2Q0/items/01C5PUTB35XGCSOPXV45CJSWRDA4TRE7ZR"]'
+    Migr:
+      driveIdItemId: '["drives/b!p3alVLWEQE-4s-dB40mvk_9HNNHA12tMksaXGoLLktEh0tgfySMASa8Ul3OHk2Q0/items/01C5PUTB2BG4NUY57VCZB22ZQGYLGKYZFH"]'
+    DirectionIt:
+      driveIdItemId: '["drives/b!p3alVLWEQE-4s-dB40mvk_9HNNHA12tMksaXGoLLktEh0tgfySMASa8Ul3OHk2Q0/items/01C5PUTBYDQQYPTBAJBZELCOVCUS3FJNTN"]'
+
+
+
+Parameters:
+  FolderName:
+    Type: String
+    Default: TestMigration
+
+
+
+
+Resources:
+  SharePointToS3Flow:
+    Type: 'AWS::AppFlow::Flow'
+    Properties:
+      FlowName: !Sub "poc-template-sharepoint-${FolderName}-to-s3"
+      Description: "Test flow for CloudFormation from sharepoint to s3"
+      TriggerConfig:
+        TriggerType: "OnDemand"
+      SourceFlowConfig:
+        ApiVersion: "v1.0"
+        ConnectorType: "CustomConnector"
+        ConnectorProfileName: "sharepoint"
+        SourceConnectorProperties:
+          CustomConnector:
+            CustomProperties:
+              subEntities: !FindInMap [ FoldersMap, !Ref FolderName , driveIdItemId ]
+            EntityName: "Microsoft Sharepoint Online"
+      DestinationFlowConfigList:
+        - ConnectorType: "S3"
+          DestinationConnectorProperties:
+            S3:
+              BucketName: "output-appflow"
+              BucketPrefix: "SHAREPOINT"
+              S3OutputFormatConfig:
+                PreserveSourceDataTyping: false
+                FileType: "JSON"
+                AggregationConfig:
+                  AggregationType: "SingleFile"
+                PrefixConfig:
+                  PathPrefixHierarchy:
+                    - SCHEMA_VERSION
+
+                  PrefixType: "PATH_AND_FILENAME"
+      Tasks:
+        - TaskType: Map_all
+          SourceFields: [ ]

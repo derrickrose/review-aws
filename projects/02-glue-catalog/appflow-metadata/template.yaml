@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  GlueCrawlerRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: "gluerole"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'glue.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'GlueCrawlerPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: 'GlueAccess'
+                Effect: 'Allow'
+                Action:
+                  - 'glue:*'
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+              - Sid: 'S3ReadAccess'
+                Effect: 'Allow'
+                Action:
+                  - 's3:GetObject'
+                  - 's3:ListBucket'
+                Resource: 'arn:aws:s3:::*'
+  AppFlowDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: appflowdatabase
+        Description: AWS Glue database for cataloging AppFlow JSON metadata
+
+  AppFlowCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: AppFlowCrawler
+      Role: !Ref GlueCrawlerRole # Please replace with your IAM Role
+      DatabaseName: !Ref AppFlowDatabase
+      Targets:
+        S3Targets:
+          - Path: s3://output-appflow/SHAREPOINT/
+            Exclusions:
+              - "MAILBOX/**"
+              - "poc-template-sharepoint-DirectionIt-to-s3/schemaVersion_1/**"
+              - "poc-template-sharepoint-Migr-to-s3/schemaVersion_1/**"
+              - "poc-template-sharepoint-TestMigration-to-s3/schemaVersion_1/**"
+          # Please replace with your specific S3 data location
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
