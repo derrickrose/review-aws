@@ -4,21 +4,6 @@
 
 [Udemy course](https://www.udemy.com/course/aws-certified-data-engineer-associate-dea-c01/?couponCode=BFCMSALE24FRTR)
 
-## s3
-
-- naming convention
-- storage class
-- availability zone related
-- bucket name uniqueness
-- versioning
-
-data ingestion
-
-- stream
-    - time sensitive
-- batch
-    - cost effective
-
 ## glue
 
 - managed etl
@@ -85,7 +70,7 @@ Inside billing and cost management service
         - separate core logic from dependencies
         - reduce package size
 
-# data streaming in aws
+## data streaming in aws
 
 - re-playability : the ability to re-process already processed data
     - why?
@@ -113,7 +98,7 @@ Inside billing and cost management service
       kinesis vs MSK
 
       | MSK                                                   | Kinesis                                                                  |
-                                             |-------------------------------------------------------|--------------------------------------------------------------------------|
+                                                                                       |-------------------------------------------------------|--------------------------------------------------------------------------|
       | customizable message size up to 10MB data throughput  | convention and up to 1MB data throughput limit                           | 
       | more complex pipelines                                | straight-forward setup                                                   | 
       | topics and partitions                                 | streams and shards                                                       | 
@@ -139,5 +124,22 @@ Inside billing and cost management service
         - MSK serverless :
             - automates capacity management, focusing on throughput and storage needs without manual scaling
 
+<a id="s3"></a>
 
+## s3
+
+[simple storage service](./s3/README.MD#s3)
+
+- naming convention
+- storage class
+- availability zone related
+- bucket name uniqueness
+- versioning
+
+data ingestion
+
+- stream
+    - time sensitive
+- batch
+    - cost effective
 
