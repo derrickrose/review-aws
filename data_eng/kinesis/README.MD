@@ -1,6 +1,4 @@
-<a id="kinesis"></a>
-
-# Kinesis
+# kinesis
 
 - cost :
     - 0.015 dollar per hour
@@ -206,4 +204,4 @@
         - auto scaling : number of KPUs automatically scaled based on needs, but can provision manually
         - AMS Flink Studio (Interactive Mode) : charged for 2 additional KPUs (like notebook)
 
-[<<Home page](./../README#data-streaming-in-aws)
+[<<Home page](./../README.MD#data-streaming-in-aws)

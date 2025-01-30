@@ -1,6 +1,4 @@
-<a id="data-eng" ></a>
-
-# Data eng
+# data eng
 
 [Udemy course](https://www.udemy.com/course/aws-certified-data-engineer-associate-dea-c01/?couponCode=BFCMSALE24FRTR)
 
@@ -98,7 +96,7 @@ Inside billing and cost management service
       kinesis vs MSK
 
       | MSK                                                   | Kinesis                                                                  |
-                                                                                                                     |-------------------------------------------------------|--------------------------------------------------------------------------|
+                                                                                                                                             |-------------------------------------------------------|--------------------------------------------------------------------------|
       | customizable message size up to 10MB data throughput  | convention and up to 1MB data throughput limit                           | 
       | more complex pipelines                                | straight-forward setup                                                   | 
       | topics and partitions                                 | streams and shards                                                       | 
@@ -124,8 +122,6 @@ Inside billing and cost management service
         - MSK serverless :
             - automates capacity management, focusing on throughput and storage needs without manual scaling
 
-<a id="s3"></a>
-
 ## s3
 
 [simple storage service](./s3/README.MD#s3)
@@ -143,14 +139,14 @@ data ingestion
 - batch
     - cost effective
 
-<a id="other-storage"></a>
-
 ## other storage
 
 [other storage](./other_storage/README.MD#other-storage)
 
-<a id="dynamodb"></a>
-
 ## dynamodb
 
 [dynamodb](./dynamodb/README.MD#dynamodb)
+
+## redshift datawarehouse
+
+[redshift](./redshift/README.MD#redshift-datawarehouse)

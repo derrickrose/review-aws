@@ -1,5 +1,3 @@
-<a id="s3"></a>
-
 # s3
 
 ### partitioning

@@ -207,4 +207,4 @@
       project explorer in the right then add a step
     - any step can be previously previewed too
 
-[<<Home page](./../README#glue)
+[<<Home page](./../README.MD#glue)

@@ -1,5 +1,3 @@
-<a id="other-storage"></a>
-
 # other storage
 
 ### EBS (elastic block storage)
@@ -111,4 +109,4 @@ serverless file system, we can share files without provisioning or managing capa
     - resource assignment (select which resource to bucket)
     - once created we can add up some resources to the resources assignment
 
-[<<Home page](./../README.MD#s3)
+[<<Home page](./../README.MD#other-storage)

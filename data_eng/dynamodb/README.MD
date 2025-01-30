@@ -1,5 +1,3 @@
-<a id="dynamodb"></a>
-
 # dynamodb
 
 ### intro
