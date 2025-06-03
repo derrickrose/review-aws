@@ -33,5 +33,6 @@ Even lambda which is serverless is running on an abstract layer of ec2.
           extremely high speed
         - some large complex simulation
         - deep learning workloads
+- hands-on : launch an ec2
 
 [<<Home page](./../README.MD#compute)
