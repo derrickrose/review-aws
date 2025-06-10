@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template for EventBridge Bus and Rule for S3 events.
+
+Metadata:
+  TemplateVersion: 1.0.6
+
+Resources:
+  MyEventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: "CustomEventBusForS3"
+#
+#  EventBridgeInvokeRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      RoleName: EventBridgeInvokeRoleForLambda  # Name your role
+#      AssumeRolePolicyDocument:
+#        Version: "2012-10-17"
+#        Statement:
+#          - Effect: Allow
+#            Principal:
+#              Service:
+#                - events.amazonaws.com  # EventBridge is allowed to assume this role
+#            Action: sts:AssumeRole
+#      Policies:
+#        - PolicyName: EventBridgeInvokePermissions
+#          PolicyDocument:
+#            Version: "2012-10-17"
+#            Statement:
+#              - Effect: Allow
+#                Action:
+#                  - lambda:InvokeFunction  # Permission for invoking Lambda
+#                Resource:
+#                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lambda-copy  # Replace with the Lambda ARN
+#
+#  # Custom EventBridge Bus
+
+
+
+  EventBridgeS3:
+    Type: AWS::Events::EventBusPolicy
+    Properties:
+      EventBusName: !Ref MyEventBus
+      StatementId: "MyStatement"
+      Statement:
+        Effect: "Allow"
+        Principal: "*"
+        Action: "events:PutEvents"
+        Resource: !Sub arn:aws:events:${AWS::Region}:${AWS::AccountId}:event-bus/CustomEventBusForS3
+
+  # EventBridge Rule for S3 Notifications
+  S3EventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: S3NotificationEventRule
+      #      EventBusName: !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:event-bus/CustomEventBusForS3"
+      EventBusName: !Ref MyEventBus
+      EventPattern:
+        source:
+          - aws.s3
+        detail:
+          eventSource:
+            - "aws:s3"
+          eventName:
+            - "PutObject"
+            - "Object Created"
+            - "ObjectCreated"
+          requestParameters:
+            bucketName:
+              - "dev-frils-ficp"
+          resources:
+            ARN:
+              - !Sub "arn:aws:s3:::dev-frils-ficp"
+#          RoleArn: !GetAtt EventBridgeInvokeRole.Arn
+
+      # Target Lambda Configuration
+      Targets:
+        - Id: TargetLambda
+          Arn: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lambda-copy
+
+
+  # Lambda Permission for EventBridge to Invoke Lambda
+  LambdaPermissionForEventBridge:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lambda-copy
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt S3EventRule.Arn
+
+
+
+
+
+#        Resource: !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:event-bus/CustomEventBusForS3"
+
+
+# https://stackoverflow.com/questions/72772106/cloudformation-eventbuspolicy-the-relative-id-event-bus-bus-name-is-invalid-f
