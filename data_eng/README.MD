@@ -96,7 +96,7 @@ Inside billing and cost management service
       kinesis vs MSK
 
       | MSK                                                   | Kinesis                                                                  |
-                                                                                                                                                         |-------------------------------------------------------|--------------------------------------------------------------------------|
+                                                                                                                                                                           |-------------------------------------------------------|--------------------------------------------------------------------------|
       | customizable message size up to 10MB data throughput  | convention and up to 1MB data throughput limit                           | 
       | more complex pipelines                                | straight-forward setup                                                   | 
       | topics and partitions                                 | streams and shards                                                       | 
@@ -158,3 +158,13 @@ data ingestion
 ## compute
 
 [compute](./compute/README.MD#compute)
+
+## analytics
+
+## lake formation
+
+[analytics](./analytics/README.MD#lake-formation)
+
+## emr
+
+[analytics](./analytics/README.MD#emr)
