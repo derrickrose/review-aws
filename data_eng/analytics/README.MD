@@ -89,6 +89,20 @@ what it can manage :
 - ebs volume : can be attached, uses SSD so bit more of velocity than regular EBS volumes, they are temporary and
   would be deleted when the cluster is terminated
 
+### different deployment options
+
+- EMR on EKS : run open source data framework on EKS, data workloads processing on EKS (elastic kubernetes service)
+    - leverage the management capabilities of kubernetes (leverage = use something to its maximum advantage)
+    - provisioning clusters not needed
+    - simplifies container based big data processes
+- EMR serverless :
+    - completely abstract away the management of all the underlying compute resources
+    - automatically provision, manage and scale all of the computing environment
+    - automatically releases the resources after task completion (cost effective)
+    - fast job startup : for application that requires quick interaction (some interactive analysis), EMR serverless can
+      also pre-initialize the resources to ensure applications are ready very quickly
+    - suitable for unpredictable workloads
+
 ### emr storage and scaling
 
 - manual scaling : can add or remove instances inside the cluster
@@ -100,3 +114,7 @@ what it can manage :
       auto-scaling
 
 [<<Home page](./../README.MD#emr)
+
+## apache hive
+
+[<<Home page](./../README.MD#apache-hive)
