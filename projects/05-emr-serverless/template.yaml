@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation EMR Serverless Application Template for Parquet to Iceberg
+
+Metadata:
+  Version: 0.0.1
+
+Parameters:
+  Env:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name (dev, staging, or prod)
+
+Mappings:
+  EnvironmentSettings:
+    dev:
+      InitialCapacityDriver: 1
+      InitialCapacityDriverCores: '2 vCPU'
+      InitialCapacityDriverMemory: '4 GB'
+      InitialCapacityExecutor: 1
+      InitialCapacityExecutorCores: '4 vCPU'
+      InitialCapacityExecutorMemory: '8 GB'
+      MaxCapacityDriverCores: '4 vCPU'
+      MaxCapacityDriverMemory: '8 GB'
+      MaxCapacityExecutorCores: '8 vCPU'
+      MaxCapacityExecutorMemory: '16 GB'
+    staging:
+      InitialCapacityDriver: 1
+      InitialCapacityDriverCores: '2 vCPU'
+      InitialCapacityDriverMemory: '4 GB'
+      InitialCapacityExecutor: 1
+      InitialCapacityExecutorCores: '4 vCPU'
+      InitialCapacityExecutorMemory: '8 GB'
+      MaxCapacityDriverCores: '4 vCPU'
+      MaxCapacityDriverMemory: '8 GB'
+      MaxCapacityExecutorCores: '8 vCPU'
+      MaxCapacityExecutorMemory: '16 GB'
+    prod:
+      InitialCapacityDriver: 1
+      InitialCapacityDriverCores: '2 vCPU'
+      InitialCapacityDriverMemory: '4 GB'
+      InitialCapacityExecutor: 1
+      InitialCapacityExecutorCores: '4 vCPU'
+      InitialCapacityExecutorMemory: '8 GB'
+      MaxCapacityDriverCores: '4 vCPU'
+      MaxCapacityDriverMemory: '8 GB'
+      MaxCapacityExecutorCores: '8 vCPU'
+      MaxCapacityExecutorMemory: '16 GB'
+
+Resources:
+  # Glue Database for Iceberg Tables
+  IcebergGlueDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Sub '${Env}_miketriky_iceberg_db'
+        Description: Glue Database for Iceberg tables
+
+  # EMR Serverless Application for Parquet to Iceberg
+  ParquetToIcebergEMRApplication:
+    Type: AWS::EMRServerless::Application
+    DependsOn: IcebergGlueDatabase
+    Properties:
+      Name: !Sub '${Env}-miketriky-parquet-to-iceberg-emr'
+      ReleaseLabel: emr-7.1.0
+      Type: Spark
+
+      # Initial capacity configuration (minimum resources)
+      InitialCapacity:
+        Driver:
+          WorkerCount: !FindInMap [EnvironmentSettings, !Ref Env, InitialCapacityDriver]
+          WorkerConfiguration:
+            Cpu: !FindInMap [EnvironmentSettings, !Ref Env, InitialCapacityDriverCores]
+            Memory: !FindInMap [EnvironmentSettings, !Ref Env, InitialCapacityDriverMemory]
+        Executor:
+          WorkerCount: !FindInMap [EnvironmentSettings, !Ref Env, InitialCapacityExecutor]
+          WorkerConfiguration:
+            Cpu: !FindInMap [EnvironmentSettings, !Ref Env, InitialCapacityExecutorCores]
+            Memory: !FindInMap [EnvironmentSettings, !Ref Env, InitialCapacityExecutorMemory]
+
+      # Maximum capacity limits
+      MaximumCapacity:
+        Cpu: '200 vCPU'
+        Memory: '400 GB'
+
+      # Auto start/stop configuration
+      AutoStartConfiguration:
+        Enabled: true
+      AutoStopConfiguration:
+        Enabled: true
+        IdleTimeoutMinutes: 15
+
+      # Network configuration (use VPC from existing stack)
+      NetworkConfiguration:
+        SubnetIds:
+          - !ImportValue
+              Fn::Sub: '${Env}-miketriky-vpc-subnet-private-a-id'
+          - !ImportValue
+              Fn::Sub: '${Env}-miketriky-vpc-subnet-private-b-id'
+        SecurityGroupIds:
+          - !ImportValue
+              Fn::Sub: '${Env}-miketriky-vpc-sg-mwaa-id'
+
+      # Spark configurations for Iceberg
+      RuntimeConfiguration:
+        - Classification: spark-defaults
+          Properties:
+            'spark.sql.extensions': 'org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions'
+            'spark.sql.catalog.glue_catalog': 'org.apache.iceberg.spark.SparkCatalog'
+            'spark.sql.catalog.glue_catalog.warehouse': !Sub 's3://${Env}-miketriky-datalake-${AWS::Region}/iceberg-warehouse/'
+            'spark.sql.catalog.glue_catalog.catalog-impl': 'org.apache.iceberg.aws.glue.GlueCatalog'
+            'spark.sql.catalog.glue_catalog.io-impl': 'org.apache.iceberg.aws.s3.S3FileIO'
+            'spark.hadoop.fs.s3.impl': 'org.apache.hadoop.fs.s3a.S3AFileSystem'
+            'spark.hadoop.fs.s3a.aws.credentials.provider': 'com.amazonaws.auth.DefaultAWSCredentialsProviderChain'
+
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-parquet-to-iceberg-emr'
+        - Key: Environment
+          Value: !Ref Env
+        - Key: Project
+          Value: parquet-to-iceberg
+
+Outputs:
+  GlueDatabaseName:
+    Description: Glue Database Name for Iceberg Tables
+    Value: !Ref IcebergGlueDatabase
+    Export:
+      Name: !Sub '${Env}-miketriky-iceberg-glue-db-name'
+  EMRApplicationId:
+    Description: EMR Serverless Application ID
+    Value: !Ref ParquetToIcebergEMRApplication
+    Export:
+      Name: !Sub '${Env}-miketriky-parquet-to-iceberg-emr-app-id'
+  EMRApplicationArn:
+    Description: EMR Serverless Application ARN
+    Value: !GetAtt ParquetToIcebergEMRApplication.Arn
+    Export:
+      Name: !Sub '${Env}-miketriky-parquet-to-iceberg-emr-app-arn'
+  EMRApplicationName:
+    Description: EMR Serverless Application Name
+    Value: !Sub '${Env}-miketriky-parquet-to-iceberg-emr'
+    Export:
+      Name: !Sub '${Env}-miketriky-parquet-to-iceberg-emr-app-name'

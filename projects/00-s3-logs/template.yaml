@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation S3 Template for Logs Storage
+
+Metadata:
+  Version: 0.0.1
+
+Parameters:
+  Env:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name (dev, staging, or prod)
+
+Resources:
+  # S3 Bucket for Logs
+  LogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${Env}-miketriky-logs-${AWS::Region}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          # Delete old versions after 30 days
+          - Id: DeleteOldVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 30
+          # Move logs to Glacier after 90 days
+          - Id: MoveToGlacier
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 90
+                StorageClass: GLACIER
+          # Delete logs after 365 days
+          - Id: DeleteOldLogs
+            Status: Enabled
+            ExpirationInDays: 365
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-logs-bucket'
+        - Key: Environment
+          Value: !Ref Env
+
+Outputs:
+  LogsBucketName:
+    Description: Logs S3 Bucket Name
+    Value: !Ref LogsBucket
+    Export:
+      Name: !Sub '${Env}-miketriky-logs-bucket-name'
+  LogsBucketArn:
+    Description: Logs S3 Bucket ARN
+    Value: !GetAtt LogsBucket.Arn
+    Export:
+      Name: !Sub '${Env}-miketriky-logs-bucket-arn'

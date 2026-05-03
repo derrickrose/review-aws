@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation VPC Peering Template - Connects DevOps VPC to Data Processing VPC
+
+Metadata:
+  Version: 0.0.1
+
+Parameters:
+  Env:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name (dev, staging, or prod)
+
+Resources:
+  # VPC Peering Connection
+  VPCPeeringConnection:
+    Type: AWS::EC2::VPCPeeringConnection
+    Properties:
+      VpcId: !ImportValue
+        Fn::Sub: '${Env}-miketriky-devops-vpc-id'
+      PeerVpcId: !ImportValue
+        Fn::Sub: '${Env}-miketriky-vpc-id'
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-vpc-peering-devops-to-data'
+        - Key: Environment
+          Value: !Ref Env
+
+  # Route from DevOps VPC Private Subnet A to Data VPC
+  RouteDevOpsPrivateAToData:
+    Type: AWS::EC2::Route
+    DependsOn: VPCPeeringConnection
+    Properties:
+      RouteTableId: !ImportValue
+        Fn::Sub: '${Env}-miketriky-devops-vpc-rtb-private-a-id'
+      DestinationCidrBlock: 10.0.0.0/16  # Data VPC CIDR
+      VpcPeeringConnectionId: !Ref VPCPeeringConnection
+
+  # Route from DevOps VPC Private Subnet B to Data VPC
+  RouteDevOpsPrivateBToData:
+    Type: AWS::EC2::Route
+    DependsOn: VPCPeeringConnection
+    Properties:
+      RouteTableId: !ImportValue
+        Fn::Sub: '${Env}-miketriky-devops-vpc-rtb-private-b-id'
+      DestinationCidrBlock: 10.0.0.0/16  # Data VPC CIDR
+      VpcPeeringConnectionId: !Ref VPCPeeringConnection
+
+  # Route from Data VPC Private Subnet A to DevOps VPC
+  RouteDataPrivateAToDevOps:
+    Type: AWS::EC2::Route
+    DependsOn: VPCPeeringConnection
+    Properties:
+      RouteTableId: !ImportValue
+        Fn::Sub: '${Env}-miketriky-vpc-rtb-private-a-id'
+      DestinationCidrBlock: 10.1.0.0/16  # DevOps VPC CIDR
+      VpcPeeringConnectionId: !Ref VPCPeeringConnection
+
+  # Route from Data VPC Private Subnet B to DevOps VPC
+  RouteDataPrivateBToDevOps:
+    Type: AWS::EC2::Route
+    DependsOn: VPCPeeringConnection
+    Properties:
+      RouteTableId: !ImportValue
+        Fn::Sub: '${Env}-miketriky-vpc-rtb-private-b-id'
+      DestinationCidrBlock: 10.1.0.0/16  # DevOps VPC CIDR
+      VpcPeeringConnectionId: !Ref VPCPeeringConnection
+
+Outputs:
+  VPCPeeringConnectionId:
+    Description: VPC Peering Connection ID
+    Value: !Ref VPCPeeringConnection
+    Export:
+      Name: !Sub '${Env}-miketriky-vpc-peering-id'

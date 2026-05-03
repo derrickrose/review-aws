@@ -1,0 +1,295 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation VPC Template for DevOps CI/CD
+
+Metadata:
+  Version: 0.0.1
+
+Parameters:
+  Env:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name (dev, staging, or prod)
+Resources:
+  # VPC
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.1.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-devops-vpc'
+
+  # Internet Gateway
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-devops-vpc-igw'
+  AttachInternetGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  # S3 VPC Endpoint
+  S3VPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !Ref RouteTablePrivateA
+        - !Ref RouteTablePrivateB
+
+  # Security Group for DevOps
+  DevOpsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for DevOps CI/CD
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-devops-vpc-sg-devops'
+  DevOpsSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref DevOpsSecurityGroup
+      IpProtocol: -1
+      SourceSecurityGroupId: !Ref DevOpsSecurityGroup
+      Description: Allow all traffic from itself
+  DevOpsSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref DevOpsSecurityGroup
+      IpProtocol: -1
+      CidrIp: 0.0.0.0/0
+      Description: Allow all outbound traffic
+
+  # Security Group for ALB (DevOps Web UI)
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for DevOps ALB
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS from internet
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: HTTP from internet
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-devops-vpc-sg-alb'
+
+  # Public Subnet A
+  SubnetPublicA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-west-3a
+      CidrBlock: 10.1.100.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-devops-vpc-subnet-public-a'
+      VpcId: !Ref VPC
+  RouteTablePublicA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: !Sub '${Env}-miketriky-devops-vpc-rtb-public-a'
+  AttachRouteTablePublicA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicA
+      RouteTableId: !Ref RouteTablePublicA
+  RoutePublicA:
+    Type: AWS::EC2::Route
+    DependsOn: AttachRouteTablePublicA
+    Properties:
+       RouteTableId: !Ref RouteTablePublicA
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId: !Ref InternetGateway
+
+  # Public Subnet B
+  SubnetPublicB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-west-3b
+      CidrBlock: 10.1.101.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-devops-vpc-subnet-public-b'
+      VpcId: !Ref VPC
+  RouteTablePublicB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: !Sub '${Env}-miketriky-devops-vpc-rtb-public-b'
+  AttachRouteTablePublicB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicB
+      RouteTableId: !Ref RouteTablePublicB
+  RoutePublicB:
+    Type: AWS::EC2::Route
+    DependsOn: AttachRouteTablePublicB
+    Properties:
+       RouteTableId: !Ref RouteTablePublicB
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId: !Ref InternetGateway
+
+  # Private Subnet A
+  SubnetPrivateA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-west-3a
+      CidrBlock: 10.1.0.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-devops-vpc-subnet-private-a'
+      VpcId: !Ref VPC
+  ElasticIpA:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  NatGatewayA:
+    DependsOn: AttachInternetGateway
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIpA.AllocationId
+      SubnetId: !Ref SubnetPublicA
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-devops-vpc-natgw-a'
+  RouteTablePrivateA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: !Sub '${Env}-miketriky-devops-vpc-rtb-private-a'
+  AttachRouteTablePrivateA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateA
+      RouteTableId: !Ref RouteTablePrivateA
+  RoutePrivateA:
+    Type: AWS::EC2::Route
+    DependsOn: AttachRouteTablePrivateA
+    Properties:
+       RouteTableId: !Ref RouteTablePrivateA
+       DestinationCidrBlock: 0.0.0.0/0
+       NatGatewayId: !Ref NatGatewayA
+
+  # Private Subnet B
+  SubnetPrivateB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-west-3b
+      CidrBlock: 10.1.1.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-devops-vpc-subnet-private-b'
+      VpcId: !Ref VPC
+  ElasticIpB:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  NatGatewayB:
+    DependsOn: AttachInternetGateway
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIpB.AllocationId
+      SubnetId: !Ref SubnetPublicB
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-devops-vpc-natgw-b'
+  RouteTablePrivateB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: !Sub '${Env}-miketriky-devops-vpc-rtb-private-b'
+  AttachRouteTablePrivateB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateB
+      RouteTableId: !Ref RouteTablePrivateB
+  RoutePrivateB:
+    Type: AWS::EC2::Route
+    DependsOn: AttachRouteTablePrivateB
+    Properties:
+       RouteTableId: !Ref RouteTablePrivateB
+       DestinationCidrBlock: 0.0.0.0/0
+       NatGatewayId: !Ref NatGatewayB
+
+Outputs:
+  VPCId:
+    Description: DevOps VPC ID
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${Env}-miketriky-devops-vpc-id'
+  PublicSubnetAId:
+    Description: Public Subnet A ID (for ALB)
+    Value: !Ref SubnetPublicA
+    Export:
+      Name: !Sub '${Env}-miketriky-devops-vpc-subnet-public-a-id'
+  PublicSubnetBId:
+    Description: Public Subnet B ID (for ALB)
+    Value: !Ref SubnetPublicB
+    Export:
+      Name: !Sub '${Env}-miketriky-devops-vpc-subnet-public-b-id'
+  PrivateSubnetAId:
+    Description: Private Subnet A ID (for DevOps tools)
+    Value: !Ref SubnetPrivateA
+    Export:
+      Name: !Sub '${Env}-miketriky-devops-vpc-subnet-private-a-id'
+  PrivateSubnetBId:
+    Description: Private Subnet B ID (for DevOps tools)
+    Value: !Ref SubnetPrivateB
+    Export:
+      Name: !Sub '${Env}-miketriky-devops-vpc-subnet-private-b-id'
+  DevOpsSecurityGroupId:
+    Description: DevOps Security Group ID
+    Value: !Ref DevOpsSecurityGroup
+    Export:
+      Name: !Sub '${Env}-miketriky-devops-vpc-sg-devops-id'
+  ALBSecurityGroupId:
+    Description: ALB Security Group ID
+    Value: !Ref ALBSecurityGroup
+    Export:
+      Name: !Sub '${Env}-miketriky-devops-vpc-sg-alb-id'
+  RouteTablePrivateAId:
+    Description: Private Route Table A ID
+    Value: !Ref RouteTablePrivateA
+    Export:
+      Name: !Sub '${Env}-miketriky-devops-vpc-rtb-private-a-id'
+  RouteTablePrivateBId:
+    Description: Private Route Table B ID
+    Value: !Ref RouteTablePrivateB
+    Export:
+      Name: !Sub '${Env}-miketriky-devops-vpc-rtb-private-b-id'

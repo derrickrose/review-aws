@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation S3 Template for Datalake Storage (Parquet & Iceberg)
+
+Metadata:
+  Version: 0.0.1
+
+Parameters:
+  Env:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name (dev, staging, or prod)
+
+Resources:
+  # S3 Bucket for Datalake (Parquet inputs & Iceberg warehouse)
+  DatalakeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${Env}-miketriky-datalake-${AWS::Region}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          # Delete old versions after 30 days
+          - Id: DeleteOldVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 30
+          # Intelligent-Tiering for cost optimization
+          - Id: IntelligentTiering
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: INTELLIGENT_TIERING
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env}-miketriky-datalake-bucket'
+        - Key: Environment
+          Value: !Ref Env
+
+Outputs:
+  DatalakeBucketName:
+    Description: Datalake S3 Bucket Name
+    Value: !Ref DatalakeBucket
+    Export:
+      Name: !Sub '${Env}-miketriky-datalake-bucket-name'
+  DatalakeBucketArn:
+    Description: Datalake S3 Bucket ARN
+    Value: !GetAtt DatalakeBucket.Arn
+    Export:
+      Name: !Sub '${Env}-miketriky-datalake-bucket-arn'
